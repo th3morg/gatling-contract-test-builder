@@ -20,8 +20,8 @@ class GatlingController {
 			}
 
 
-			map.baseUrl = params.baseUrl ?: "http://elb.yonder.it:8080"
-			map.requestPath = params.requestPath ?: "/yonder-web/api/3f1bde0e-1838-45cd-8b9a-801ca99cef99/accounts/info?userId=330190"
+			map.baseUrl = params.baseUrl
+			map.requestPath = params.requestPath
 			return map
 		}
 }

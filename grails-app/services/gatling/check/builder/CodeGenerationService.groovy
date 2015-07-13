@@ -4,6 +4,8 @@ import grails.converters.JSON
 import grails.plugins.rest.client.RestBuilder
 import grails.plugins.rest.client.RestResponse
 import grails.transaction.Transactional
+import org.codehaus.groovy.grails.web.json.JSONArray
+import org.codehaus.groovy.grails.web.json.JSONObject
 import org.springframework.http.HttpMethod
 
 @Transactional
@@ -34,14 +36,55 @@ class CodeGenerationService {
 		return response
 	}
 
-	String generateExecStatement(String requestPath, String method){
-		String field = requestPath.substring(0, requestPath.indexOf("?")).replace("/", "_")
-
+	String generateExecStatement(String requestPath, Map paramVariables, String method, String body, JSON json){
+		String field = requestPath.substring(0, requestPath.indexOf("?") != -1 ? requestPath.indexOf("?"): requestPath.length()).replace("/", "_")
+		paramVariables.each {
+			field = field.replace("_${it.key}", "")
+		}
+		def gatlingBodyLines = []
+		body?.eachLine {
+			gatlingBodyLines << "|" + it
+		}
 		"""
-		val ${field} = exec(http(\"${field}\")
-				.${method.toLowerCase()}(s\"\"\"${requestPath}\"\"\".stripMargin)
-		)
+\t\tval ${field} = exec(http(\"${field}\")
+\t\t\t\t.${method.toLowerCase()}(s\"\"\"${requestPath}\"\"\".stripMargin)
+${gatlingBodyLines? "\t\t\t\t.body(\n\t\t\t\t\t\tStringBody(s\"\"\"" + gatlingBodyLines.join("\n") + "\n\t\t\t\t\t\t\"\"\".stripMargin)\n\t\t\t\t)" : null}
+${buildChecks(json.getProperties()["target"] as JSONObject, "").collect{
+		"\t\t\t\t.check(bodyString.transform(s => findKey(toJSON(s), \"$it\")).is(true))"
+	}.join("\n")
+}
+\t\t)
 		"""
 	}
 
+	protected List<String> buildChecks(JSONObject node, String parentPath){
+		List<String> checks = []
+		node.each {
+			String path = parentPath ? parentPath + "." + it.key : it.key
+			if(it.value instanceof JSONObject){
+				checks.addAll(buildChecks(it.value as JSONObject, path))
+			} else if(it.value instanceof JSONArray){
+				checks.addAll(buildChecks(it.value as JSONArray, path))
+			} else {
+				checks << path
+			}
+		}
+		return checks
+	}
+
+	protected List<String> buildChecks(JSONArray node, String parentPath){
+		List<String> checks = []
+		if(node.isEmpty()) return checks
+		def obj = node.get(0)
+		if (obj instanceof JSONArray){
+			checks.addAll(buildChecks(obj, parentPath))
+		} else if(obj instanceof JSONObject){
+			checks.addAll(buildChecks(obj, parentPath))
+		} else {
+			println "Found array with non-json object contents, adding the parent path to the checks since there is no depth"
+			checks << parentPath
+		}
+
+		return checks
+	}
 }

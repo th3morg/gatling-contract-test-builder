@@ -6,7 +6,6 @@
 --%>
 
 <%@ page import="org.springframework.http.HttpMethod" contentType="text/html;charset=UTF-8" defaultCodec="html" %>
-<>
 <head>
 	<title>Generate An HTTP Scenario Check</title>
 </head>

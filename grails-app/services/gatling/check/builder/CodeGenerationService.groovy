@@ -16,8 +16,7 @@ class CodeGenerationService {
 		def response
 		switch (HttpMethod.valueOf(method)) {
 			case HttpMethod.GET:
-				response = rest.get(url) {
-				}
+				response = rest.get(url)
 				break;
 			case HttpMethod.POST:
 				response = rest.post(url) {
@@ -26,6 +25,29 @@ class CodeGenerationService {
 				break;
 			case HttpMethod.PUT:
 				response = rest.put(url) {
+					json body
+				}
+				break;
+			case HttpMethod.OPTIONS:
+				response = rest.options(url)
+				break;
+			case HttpMethod.DELETE:
+				response = rest.delete(url){
+					json body
+				}
+				break;
+			case HttpMethod.PATCH:
+				response = rest.patch(url){
+					json body
+				}
+				break;
+			case HttpMethod.HEAD:
+				response = rest.head(url){
+					json body
+				}
+				break;
+			case HttpMethod.TRACE:
+				response = rest.trace(url){
 					json body
 				}
 				break;
@@ -47,8 +69,7 @@ class CodeGenerationService {
 		}
 		"""
 \t\tval ${field} = exec(http(\"${field}\")
-\t\t\t\t.${method.toLowerCase()}(s\"\"\"${requestPath}\"\"\".stripMargin)
-${gatlingBodyLines? "\t\t\t\t.body(\n\t\t\t\t\t\tStringBody(s\"\"\"" + gatlingBodyLines.join("\n") + "\n\t\t\t\t\t\t\"\"\".stripMargin)\n\t\t\t\t)" : null}
+\t\t\t\t.${method.toLowerCase()}(s\"\"\"${requestPath}\"\"\".stripMargin)${gatlingBodyLines? "\n\t\t\t\t.body(\n\t\t\t\t\t\tStringBody(s\"\"\"" + gatlingBodyLines.join("\n") + "\n\t\t\t\t\t\t\"\"\".stripMargin)\n\t\t\t\t)" : ''}
 ${buildChecks(json.getProperties()["target"] as JSONObject, "").collect{
 		"\t\t\t\t.check(bodyString.transform(s => findKey(toJSON(s), \"$it\")).is(true))"
 	}.join("\n")

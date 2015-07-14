@@ -52,7 +52,7 @@ import net.minidev.json.parser.JSONParser
   }
 ```
 
-You'll need to import the JSON Smart jar into your gralde build file or maven pom. 
+You'll need to import the JSON Smart jar into your gradle build file or maven pom. 
 
 `compile 'net.minidev:json-smart:2.0'`
 

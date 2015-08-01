@@ -69,7 +69,7 @@ class CodeGenerationService {
 		}
 		"""
 \t\tval ${field} = exec(http(\"${field}\")
-\t\t\t\t.${method.toLowerCase()}(s\"\"\"${requestPath}\"\"\".stripMargin)${gatlingBodyLines? "\n\t\t\t\t.body(\n\t\t\t\t\t\tStringBody(s\"\"\"" + gatlingBodyLines.join("\n") + "\n\t\t\t\t\t\t\"\"\".stripMargin)\n\t\t\t\t)" : ''}
+\t\t\t\t.${method.toLowerCase()}(\"\"\"${requestPath}\"\"\".stripMargin)${gatlingBodyLines? "\n\t\t\t\t.body(\n\t\t\t\t\t\tStringBody(s\"\"\"" + gatlingBodyLines.join("\n") + "\n\t\t\t\t\t\t\"\"\".stripMargin)\n\t\t\t\t)" : ''}
 ${buildChecks(json.getProperties()["target"] as JSONObject, "").collect{
 		"\t\t\t\t.check(bodyString.transform(s => findKey(toJSON(s), \"$it\")).is(true))"
 	}.join("\n")
